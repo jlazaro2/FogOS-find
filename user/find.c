@@ -5,7 +5,9 @@
 #include "stdbool.h"
 #include "kernel/fs.h"
 
-void find(const char *path, const char *target) {
+//goal: to recursively search thru directories to find a file
+
+void find(const char *path, const char *flag, const char *target) {
     int fd;
     struct stat st;
     struct dirent de;
@@ -22,7 +24,7 @@ void find(const char *path, const char *target) {
         return;
     }
 
-    // if it's a directory
+    // if it's a directory, traverse it
     if (st.type == T_DIR) {
         if (strlen(path) + 1 + DIRSIZ + 1 > sizeof(buf)) {
             printf("find: path too long\n");
@@ -49,6 +51,14 @@ void find(const char *path, const char *target) {
                 continue;
             }
 
+            if ((strcmp(target, "d") == 0) && (strcmp(flag, "-type") == 0) && (st.type == T_DIR)) {
+           		 printf("%s\n", buf);
+           	}
+
+           	if ((strcmp(target, "f") == 0) && (strcmp(flag, "-type") == 0) && (st.type == T_FILE)) {
+           		 printf("%s\n", buf);
+           	}
+
             // if the file/directory name matches the target
             if (strcmp(de.name, target) == 0) {
                 printf("%s\n", buf);  // print if it matches
@@ -56,7 +66,7 @@ void find(const char *path, const char *target) {
 
             // recurse into it if it's a directory
             if (st.type == T_DIR) {
-                find(buf, target);
+                find(buf, flag, target);
             }
         }
     }
@@ -70,6 +80,6 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    find(argv[1], argv[2]);
+    find(argv[1], argv[2], argv[3]);
     exit(0);
 }
