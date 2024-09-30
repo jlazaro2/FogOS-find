@@ -6,8 +6,16 @@
 #include "kernel/fs.h"
 
 //goal: to recursively search thru directories to find a file
+// cite/research: https://www.geeksforgeeks.org/find-command-in-linux-with-examples/
 
-
+/**
+ * checks if pattern (file name or other symbols) matches target string
+ * patterns include: * or ?
+ *
+ * @param str file/directory name 
+ * @param pattern target provided
+ * @return true if file/directory matches name or pattern 
+ */
 bool matches(const char *str, const char *pattern) {
 	const char *tmp_pattern = pattern;
 	const char *tmp_str = str;
@@ -15,28 +23,42 @@ bool matches(const char *str, const char *pattern) {
 	int last_match = -1;
 	
 	for (int i = 0; *tmp_str; i++) {
+		// move pattern pointer to next if a match or contains ? character
 		if (*tmp_pattern == *tmp_str || *tmp_pattern == '?') {
 			tmp_pattern++; 
+		// save position of * when found and save index of last match if string contains * character
 		} else if (*tmp_pattern == '*') {
+			// star position
 			star = i;
 			tmp_pattern++;
 			last_match = i;
+		// check if theres a mismatch after * character and revisit to last matched char
 		} else if (star != -1) {
 			i = last_match;
 			tmp_pattern = pattern + (tmp_pattern - pattern);
+		// no match found
 		} else {
 			return false;
 		}
 		tmp_str++;
 	}
 
+	// condition added to skip other chars after * in the pattern
 	while (*tmp_pattern == '*') {
 		tmp_pattern++;
 	}
 
+	// return if pattern matches strings
 	return *tmp_pattern == '\0';
 }
 
+/**
+ * finds path towards specific files or directories (some restrictions include)
+ *
+ * @param path starting directory for search
+ * @param flag settings or conditions 
+ * @param target pattern or file/directory name
+ */
 void find(const char *path, const char *flag, const char *target) {
     int fd;
     struct stat st;
@@ -107,6 +129,13 @@ void find(const char *path, const char *flag, const char *target) {
     close(fd);
 }
 
+/**
+ * main method used for testing
+ *
+ * @param argc number of arguments
+ * @param argv array of arguments
+ * @return exit code
+ */
 int main(int argc, char *argv[]) {
     if (argc < 3) {
         printf("Usage: find <directory> <file_name>\n");
