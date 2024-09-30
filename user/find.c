@@ -7,6 +7,33 @@
 
 //goal: to recursively search thru directories to find a file
 
+
+bool matches(const char *str, const char *pattern) {
+	const char *tmp_pattern = pattern;
+	const char *tmp_str = str;
+	const char *star;
+	int last_match = -1;
+	
+	for (int i = 0; *tmp_str; i++) {
+		if (*tmp_pattern == tmp_str[i] || *tmp_pattern == '?') {
+			tmp_pattern++; 
+		} else if (*tmp_pattern == '*') {
+			star = tmp_pattern++;
+			last_match = i;
+		} else if (star) {
+			i = last_match;
+		} else {
+			return false;
+		}
+	}
+
+	while (*tmp_pattern == '*') {
+		tmp_pattern++;
+	}
+
+	return *tmp_pattern == '\0';
+}
+
 void find(const char *path, const char *flag, const char *target) {
     int fd;
     struct stat st;
@@ -51,17 +78,20 @@ void find(const char *path, const char *flag, const char *target) {
                 continue;
             }
 
+			// prints all directory if argument is like "find path -type d"
             if ((strcmp(target, "d") == 0) && (strcmp(flag, "-type") == 0) && (st.type == T_DIR)) {
            		 printf("%s\n", buf);
            	}
 
+			// prints all files if argument is like "find path -type f"
            	if ((strcmp(target, "f") == 0) && (strcmp(flag, "-type") == 0) && (st.type == T_FILE)) {
            		 printf("%s\n", buf);
            	}
 
             // if the file/directory name matches the target
-            if (strcmp(de.name, target) == 0) {
-                printf("%s\n", buf);  // print if it matches
+            // see if target includes any symbols like * or ?
+            if (strcmp(flag, "-name") == 0 && matches(de.name, target)) {
+            		printf("%s\n", buf);  // print if it matches
             }
 
             // recurse into it if it's a directory
