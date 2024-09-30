@@ -11,20 +11,23 @@
 bool matches(const char *str, const char *pattern) {
 	const char *tmp_pattern = pattern;
 	const char *tmp_str = str;
-	const char *star;
+	int star = -1;
 	int last_match = -1;
 	
 	for (int i = 0; *tmp_str; i++) {
-		if (*tmp_pattern == tmp_str[i] || *tmp_pattern == '?') {
+		if (*tmp_pattern == *tmp_str || *tmp_pattern == '?') {
 			tmp_pattern++; 
 		} else if (*tmp_pattern == '*') {
-			star = tmp_pattern++;
+			star = i;
+			tmp_pattern++;
 			last_match = i;
-		} else if (star) {
+		} else if (star != -1) {
 			i = last_match;
+			tmp_pattern = pattern + (tmp_pattern - pattern);
 		} else {
 			return false;
 		}
+		tmp_str++;
 	}
 
 	while (*tmp_pattern == '*') {
